@@ -114,8 +114,11 @@ func (pw *Visualizer) handleEvent(e any, t screen.Texture) {
 		log.Printf("ERROR: %s", e)
 
 	case mouse.Event:
-		if t == nil {
-			// TODO: Реалізувати реакцію на натискання кнопки миші.
+		if e.Button == mouse.ButtonLeft {
+			x := int(e.X) - pw.pos.Dx()/2
+			y := int(e.Y) - pw.pos.Dy()/2
+			pw.pos = image.Rect(x, y, x+pw.pos.Dx(), y+pw.pos.Dy())
+			pw.w.Send(paint.Event{})
 		}
 
 	case paint.Event:
@@ -131,12 +134,35 @@ func (pw *Visualizer) handleEvent(e any, t screen.Texture) {
 }
 
 func (pw *Visualizer) drawDefaultUI() {
-	pw.w.Fill(pw.sz.Bounds(), color.Black, draw.Src) // Фон.
+	pw.w.Fill(pw.sz.Bounds(), color.White, draw.Src)
 
-	// TODO: Змінити колір фону та додати відображення фігури у вашому варіанті.
+	pw.drawTShape(pw.pos)
 
-	// Малювання білої рамки.
 	for _, br := range imageutil.Border(pw.sz.Bounds(), 10) {
 		pw.w.Fill(br, color.White, draw.Src)
 	}
 }
+
+
+func (pw *Visualizer) drawTShape(pos image.Rectangle) {
+	headHeight := 60
+	stemWidth := 60
+
+	head := image.Rect(
+		pos.Min.X,
+		pos.Max.Y-headHeight,
+		pos.Max.X,
+		pos.Max.Y,
+	)
+
+	stem := image.Rect(
+		pos.Min.X+(pos.Dx()-stemWidth)/2,
+		pos.Min.Y,
+		pos.Min.X+(pos.Dx()-stemWidth)/2+stemWidth,
+		pos.Max.Y-headHeight,
+	)
+
+	pw.w.Fill(head, color.RGBA{255, 255, 0, 255}, draw.Src) // Жовтий
+	pw.w.Fill(stem, color.RGBA{255, 255, 0, 255}, draw.Src)
+}
+
