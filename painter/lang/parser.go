@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/whole-lotta-go/lab-3/painter"
+	"github.com/whole-lotta-go/lab-3/ui"
 )
 
 // Parser уміє прочитати дані з вхідного io.Reader та повернути список операцій представлені вхідним скриптом.
@@ -42,7 +43,10 @@ func (p *Parser) ParseLine(line string) (painter.Operation, error) {
 
 	tokens := strings.Fields(line)
 	cmd := tokens[0]
-	args := tokens[1:]
+	args, err := argsFloatToInt(tokens[1:])
+	if err != nil {
+		return nil, err
+	}
 
 	switch cmd {
 	case "white":
@@ -55,37 +59,39 @@ func (p *Parser) ParseLine(line string) (painter.Operation, error) {
 		if len(args) != 4 {
 			return nil, fmt.Errorf("bgrect requires exactly 4 arguments")
 		}
-		x1, err1 := strconv.Atoi(args[0])
-		y1, err2 := strconv.Atoi(args[1])
-		x2, err3 := strconv.Atoi(args[2])
-		y2, err4 := strconv.Atoi(args[3])
-		if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-			return nil, fmt.Errorf("invalid bgrect coordinates")
-		}
+		x1, y1, x2, y2 := args[0], args[1], args[2], args[3]
 		return &painter.BgRect{X1: x1, Y1: y1, X2: x2, Y2: y2}, nil
 	case "figure":
 		if len(args) != 2 {
 			return nil, fmt.Errorf("figure requires exactly 2 arguments")
 		}
-		x, err1 := strconv.Atoi(args[0])
-		y, err2 := strconv.Atoi(args[1])
-		if err1 != nil || err2 != nil {
-			return nil, fmt.Errorf("invalid figure coordinates")
-		}
+		x, y := args[0], args[1]
 		return &painter.TShape{X: x, Y: y}, nil
 	case "move":
 		if len(args) != 2 {
 			return nil, fmt.Errorf("move requires exactly 2 arguments")
 		}
-		dx, err1 := strconv.Atoi(args[0])
-		dy, err2 := strconv.Atoi(args[1])
-		if err1 != nil || err2 != nil {
-			return nil, fmt.Errorf("invalid move coordinates")
-		}
+		dx, dy := args[0], args[1]
 		return &painter.Move{Dx: dx, Dy: dy}, nil
 	case "reset":
 		return &painter.Reset{}, nil
 	default:
 		return nil, fmt.Errorf("unknown command: %s", cmd)
 	}
+}
+
+func argsFloatToInt(args []string) ([]int, error) {
+	coords := make([]int, 0)
+	for _, arg := range args {
+		val, err := strconv.ParseFloat(arg, 64)
+		if err != nil {
+			return nil, err
+		}
+		coords = append(coords, coordFloatToInt(val))
+	}
+	return coords, nil
+}
+
+func coordFloatToInt(coord float64) int {
+	return int(coord * ui.WindowSide)
 }

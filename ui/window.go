@@ -16,9 +16,7 @@ import (
 	"golang.org/x/mobile/event/size"
 )
 
-const (
-	windowHeight, windowWidth = 800, 800
-)
+const WindowSide = 800
 
 type Visualizer struct {
 	Title         string
@@ -36,7 +34,7 @@ type Visualizer struct {
 func (pw *Visualizer) Main() {
 	pw.tx = make(chan screen.Texture)
 	pw.done = make(chan struct{})
-	pw.pos = image.Point{windowWidth / 2, windowHeight / 2}
+	pw.pos = image.Point{WindowSide / 2, WindowSide / 2}
 	driver.Main(pw.run)
 }
 
@@ -47,8 +45,8 @@ func (pw *Visualizer) Update(t screen.Texture) {
 func (pw *Visualizer) run(s screen.Screen) {
 	w, err := s.NewWindow(&screen.NewWindowOptions{
 		Title:  pw.Title,
-		Width:  windowWidth,
-		Height: windowHeight,
+		Width:  WindowSide,
+		Height: WindowSide,
 	})
 	if err != nil {
 		log.Fatal("Failed to initialize the app window:", err)
@@ -147,23 +145,23 @@ func (pw *Visualizer) drawDefaultUI() {
 }
 
 func (pw *Visualizer) drawTShape(center image.Point) {
-	tShapeColor := color.RGBA{255, 255, 0, 255}
-	blockSize := 100
+	yellow := color.RGBA{255, 255, 0, 255}
+	blockSide := 100
 
 	stem := image.Rect(
-		center.X-blockSize/2,
-		center.Y-blockSize,
-		center.X+blockSize/2,
+		center.X-blockSide/2,
+		center.Y-blockSide,
+		center.X+blockSide/2,
 		center.Y,
 	)
 
 	head := image.Rect(
-		center.X-blockSize*3/2,
+		center.X-blockSide*3/2,
 		center.Y,
-		center.X+blockSize*3/2,
-		center.Y+blockSize,
+		center.X+blockSide*3/2,
+		center.Y+blockSide,
 	)
 
-	pw.w.Fill(stem, tShapeColor, draw.Src)
-	pw.w.Fill(head, tShapeColor, draw.Src)
+	pw.w.Fill(stem, yellow, draw.Src)
+	pw.w.Fill(head, yellow, draw.Src)
 }

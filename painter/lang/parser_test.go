@@ -34,12 +34,12 @@ func Test_Parse(t *testing.T) {
 
 		{
 			name:  "BgRect operation with valid coordinates",
-			input: "bgrect 0 0 100 100",
-			want:  []painter.Operation{&painter.BgRect{X1: 0, Y1: 0, X2: 100, Y2: 100}},
+			input: "bgrect 0 0 0.1 0.2",
+			want:  []painter.Operation{&painter.BgRect{X1: 0, Y1: 0, X2: 80, Y2: 160}},
 		},
 		{
 			name:    "BgRect with invalid coordinates count",
-			input:   "bgrect 0 0 100",
+			input:   "bgrect 0 0 0.1",
 			wantErr: true,
 		},
 		{
@@ -50,12 +50,12 @@ func Test_Parse(t *testing.T) {
 
 		{
 			name:  "Figure (TShape) operation with valid coordinates",
-			input: "figure 150 200",
-			want:  []painter.Operation{&painter.TShape{X: 150, Y: 200}},
+			input: "figure 0.25 0.5",
+			want:  []painter.Operation{&painter.TShape{X: 200, Y: 400}},
 		},
 		{
 			name:    "Figure with invalid coordinates count",
-			input:   "figure 150",
+			input:   "figure 0.25",
 			wantErr: true,
 		},
 		{
@@ -66,12 +66,12 @@ func Test_Parse(t *testing.T) {
 
 		{
 			name:  "Move operation with valid coordinates",
-			input: "move 10 -20",
-			want:  []painter.Operation{&painter.Move{Dx: 10, Dy: -20}},
+			input: "move 0.1 -0.5",
+			want:  []painter.Operation{&painter.Move{Dx: 80, Dy: -400}},
 		},
 		{
 			name:    "Move with invalid coordinates count",
-			input:   "move 10",
+			input:   "move 0.1",
 			wantErr: true,
 		},
 		{

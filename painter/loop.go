@@ -4,10 +4,11 @@ import (
 	"image"
 	"sync"
 
+	"github.com/whole-lotta-go/lab-3/ui"
 	"golang.org/x/exp/shiny/screen"
 )
 
-var size = image.Pt(800, 800)
+var size = image.Pt(ui.WindowSide, ui.WindowSide)
 
 // Receiver отримує текстуру, яка була підготовлена в результаті виконання команд у циклі подій.
 type Receiver interface {
