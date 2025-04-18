@@ -39,14 +39,18 @@ func (f OperationFunc) Do(t screen.Texture) bool {
 	return false
 }
 
-// WhiteFill зафарбовує тестуру у білий колір. Може бути викоистана як Operation через OperationFunc(WhiteFill).
-func WhiteFill(t screen.Texture) {
+type WhiteFill struct{}
+
+func (op *WhiteFill) Do(t screen.Texture) bool {
 	t.Fill(t.Bounds(), color.White, screen.Src)
+	return false
 }
 
-// GreenFill зафарбовує тестуру у зелений колір. Може бути викоистана як Operation через OperationFunc(GreenFill).
-func GreenFill(t screen.Texture) {
+type GreenFill struct{}
+
+func (op *GreenFill) Do(t screen.Texture) bool {
 	t.Fill(t.Bounds(), color.RGBA{G: 0xff, A: 0xff}, screen.Src)
+	return false
 }
 
 type BgRect struct {

@@ -17,83 +17,83 @@ func Test_Parse(t *testing.T) {
 	}{
 		{
 			name:  "White fill operation",
-			input: "white\n",
-			want:  []painter.Operation{painter.OperationFunc(painter.WhiteFill)},
+			input: "white",
+			want:  []painter.Operation{&painter.WhiteFill{}},
 		},
 		{
 			name:  "Green fill operation",
-			input: "green\n",
-			want:  []painter.Operation{painter.OperationFunc(painter.GreenFill)},
+			input: "green",
+			want:  []painter.Operation{&painter.GreenFill{}},
 		},
 
 		{
 			name:  "Update operation",
-			input: "update\n",
+			input: "update",
 			want:  []painter.Operation{painter.UpdateOp},
 		},
 
 		{
 			name:  "BgRect operation with valid coordinates",
-			input: "bgrect 0 0 100 100\n",
+			input: "bgrect 0 0 100 100",
 			want:  []painter.Operation{&painter.BgRect{X1: 0, Y1: 0, X2: 100, Y2: 100}},
 		},
 		{
 			name:    "BgRect with invalid coordinates count",
-			input:   "bgrect 0 0 100\n",
+			input:   "bgrect 0 0 100",
 			wantErr: true,
 		},
 		{
 			name:    "BgRect with non-numeric coordinates",
-			input:   "bgrect a b c d\n",
+			input:   "bgrect a b c d",
 			wantErr: true,
 		},
 
 		{
 			name:  "Figure (TShape) operation with valid coordinates",
-			input: "figure 150 200\n",
+			input: "figure 150 200",
 			want:  []painter.Operation{&painter.TShape{X: 150, Y: 200}},
 		},
 		{
 			name:    "Figure with invalid coordinates count",
-			input:   "figure 150\n",
+			input:   "figure 150",
 			wantErr: true,
 		},
 		{
 			name:    "Figure with non-numeric coordinates",
-			input:   "figure x y\n",
+			input:   "figure x y",
 			wantErr: true,
 		},
 
 		{
 			name:  "Move operation with valid coordinates",
-			input: "move 10 -20\n",
+			input: "move 10 -20",
 			want:  []painter.Operation{&painter.Move{Dx: 10, Dy: -20}},
 		},
 		{
 			name:    "Move with invalid coordinates count",
-			input:   "move 10\n",
+			input:   "move 10",
 			wantErr: true,
 		},
 		{
 			name:    "Move with non-numeric coordinates",
-			input:   "move x y\n",
+			input:   "move x y",
 			wantErr: true,
 		},
 
 		{
 			name:  "Reset operation",
-			input: "reset\n",
+			input: "reset",
 			want:  []painter.Operation{&painter.Reset{}},
 		},
 
 		{
 			name:    "Unknown command",
-			input:   "unknown\n",
+			input:   "unknown",
 			wantErr: true,
 		},
 		{
 			name:    "Empty command",
-			input:   "\n",
+			input:   "",
 			wantErr: false,
 			want:    nil,
 		},
