@@ -16,6 +16,9 @@ import (
 	"golang.org/x/mobile/event/size"
 )
 
+const windowWidth = 800
+const windowHeight = 800
+
 type Visualizer struct {
 	Title         string
 	Debug         bool
@@ -32,8 +35,7 @@ type Visualizer struct {
 func (pw *Visualizer) Main() {
 	pw.tx = make(chan screen.Texture)
 	pw.done = make(chan struct{})
-	pw.pos.Max.X = 200
-	pw.pos.Max.Y = 200
+	pw.pos = image.Point{windowWidth / 2, windowHeight / 2}
 	driver.Main(pw.run)
 }
 
@@ -42,9 +44,6 @@ func (pw *Visualizer) Update(t screen.Texture) {
 }
 
 func (pw *Visualizer) run(s screen.Screen) {
-	const windowWidth = 800
-	const windowHeight = 800
-	
 	w, err := s.NewWindow(&screen.NewWindowOptions{
 		Title: pw.Title,
 		Width: windowWidth,
