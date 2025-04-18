@@ -3,6 +3,7 @@ package lang
 import (
 	"bufio"
 	"fmt"
+	"image/color"
 	"io"
 	"strconv"
 	"strings"
@@ -50,11 +51,11 @@ func (p *Parser) ParseLine(line string) (painter.Operation, error) {
 
 	switch cmd {
 	case "white":
-		return &painter.WhiteFill{}, nil
+		return &painter.Fill{Color: color.White}, nil
 	case "green":
-		return &painter.GreenFill{}, nil
+		return &painter.Fill{Color: color.RGBA{R: 0, G: 255, B: 0, A: 255}}, nil
 	case "update":
-		return painter.UpdateOp, nil
+		return &painter.UpdateOp{}, nil
 	case "bgrect":
 		if len(args) != 4 {
 			return nil, fmt.Errorf("bgrect requires exactly 4 arguments")
@@ -66,13 +67,13 @@ func (p *Parser) ParseLine(line string) (painter.Operation, error) {
 			return nil, fmt.Errorf("figure requires exactly 2 arguments")
 		}
 		x, y := args[0], args[1]
-		return &painter.TShape{X: x, Y: y}, nil
+		return &painter.Figure{X: x, Y: y}, nil
 	case "move":
 		if len(args) != 2 {
 			return nil, fmt.Errorf("move requires exactly 2 arguments")
 		}
 		dx, dy := args[0], args[1]
-		return &painter.Move{Dx: dx, Dy: dy}, nil
+		return &painter.Move{X: dx, Y: dy}, nil
 	case "reset":
 		return &painter.Reset{}, nil
 	default:

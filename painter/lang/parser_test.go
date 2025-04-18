@@ -1,6 +1,7 @@
 package lang
 
 import (
+	"image/color"
 	"reflect"
 	"strings"
 	"testing"
@@ -18,18 +19,18 @@ func Test_Parse(t *testing.T) {
 		{
 			name:  "White fill operation",
 			input: "white",
-			want:  []painter.Operation{&painter.WhiteFill{}},
+			want:  []painter.Operation{&painter.Fill{Color: color.White}},
 		},
 		{
 			name:  "Green fill operation",
 			input: "green",
-			want:  []painter.Operation{&painter.GreenFill{}},
+			want:  []painter.Operation{&painter.Fill{Color: color.RGBA{R: 0, G: 255, B: 0, A: 255}}},
 		},
 
 		{
 			name:  "Update operation",
 			input: "update",
-			want:  []painter.Operation{painter.UpdateOp},
+			want:  []painter.Operation{&painter.UpdateOp{}},
 		},
 
 		{
@@ -51,7 +52,7 @@ func Test_Parse(t *testing.T) {
 		{
 			name:  "Figure (TShape) operation with valid coordinates",
 			input: "figure 0.25 0.5",
-			want:  []painter.Operation{&painter.TShape{X: 200, Y: 400}},
+			want:  []painter.Operation{&painter.Figure{X: 200, Y: 400}},
 		},
 		{
 			name:    "Figure with invalid coordinates count",
@@ -66,8 +67,8 @@ func Test_Parse(t *testing.T) {
 
 		{
 			name:  "Move operation with valid coordinates",
-			input: "move 0.1 -0.5",
-			want:  []painter.Operation{&painter.Move{Dx: 80, Dy: -400}},
+			input: "move 0.1 0.5",
+			want:  []painter.Operation{&painter.Move{X: 80, Y: 400}},
 		},
 		{
 			name:    "Move with invalid coordinates count",
