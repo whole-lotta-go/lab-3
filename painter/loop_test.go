@@ -19,8 +19,8 @@ func TestLoopPostAndUpdate(t *testing.T) {
 	l.Receiver = &tr
 
 	l.Start(mockScreen{})
-	l.Post(OperationFunc(WhiteFill))
-	l.Post(OperationFunc(GreenFill))
+	l.Post(&WhiteFill{})
+	l.Post(&GreenFill{})
 	l.Post(UpdateOp)
 	l.StopAndWait()
 
