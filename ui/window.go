@@ -16,6 +16,10 @@ import (
 	"golang.org/x/mobile/event/size"
 )
 
+const (
+	windowHeight, windowWidth = 800, 800
+)
+
 type Visualizer struct {
 	Title         string
 	Debug         bool
@@ -26,14 +30,13 @@ type Visualizer struct {
 	done chan struct{}
 
 	sz  size.Event
-	pos image.Rectangle
+	pos image.Point
 }
 
 func (pw *Visualizer) Main() {
 	pw.tx = make(chan screen.Texture)
 	pw.done = make(chan struct{})
-	pw.pos.Max.X = 200
-	pw.pos.Max.Y = 200
+	pw.pos = image.Point{windowWidth / 2, windowHeight / 2}
 	driver.Main(pw.run)
 }
 
@@ -44,6 +47,8 @@ func (pw *Visualizer) Update(t screen.Texture) {
 func (pw *Visualizer) run(s screen.Screen) {
 	w, err := s.NewWindow(&screen.NewWindowOptions{
 		Title: pw.Title,
+		Width: windowWidth,
+		Height: windowHeight,
 	})
 	if err != nil {
 		log.Fatal("Failed to initialize the app window:", err)
@@ -114,8 +119,9 @@ func (pw *Visualizer) handleEvent(e any, t screen.Texture) {
 		log.Printf("ERROR: %s", e)
 
 	case mouse.Event:
-		if t == nil {
-			// TODO: Реалізувати реакцію на натискання кнопки миші.
+		if e.Button == mouse.ButtonLeft {
+			pw.pos = image.Point{int(e.X), int(e.Y)}
+			pw.w.Send(paint.Event{})
 		}
 
 	case paint.Event:
@@ -131,12 +137,35 @@ func (pw *Visualizer) handleEvent(e any, t screen.Texture) {
 }
 
 func (pw *Visualizer) drawDefaultUI() {
-	pw.w.Fill(pw.sz.Bounds(), color.Black, draw.Src) // Фон.
+	pw.w.Fill(pw.sz.Bounds(), color.White, draw.Src)
 
-	// TODO: Змінити колір фону та додати відображення фігури у вашому варіанті.
+	pw.drawTShape(pw.pos)
 
-	// Малювання білої рамки.
 	for _, br := range imageutil.Border(pw.sz.Bounds(), 10) {
 		pw.w.Fill(br, color.White, draw.Src)
 	}
 }
+
+
+func (pw *Visualizer) drawTShape(center image.Point) {
+	tShapeColor := color.RGBA{255, 255, 0, 255}
+	blockSize := 100
+
+	stem := image.Rect(
+		center.X - blockSize / 2,
+		center.Y - blockSize,
+		center.X + blockSize / 2,
+		center.Y,
+	)
+	
+	head := image.Rect(
+		center.X - blockSize * 3 / 2,
+		center.Y,
+		center.X + blockSize * 3 / 2,
+		center.Y + blockSize,
+	)
+	
+	pw.w.Fill(stem, tShapeColor, draw.Src)
+	pw.w.Fill(head, tShapeColor, draw.Src)
+}
+
