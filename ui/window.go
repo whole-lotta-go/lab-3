@@ -46,8 +46,8 @@ func (pw *Visualizer) Update(t screen.Texture) {
 
 func (pw *Visualizer) run(s screen.Screen) {
 	w, err := s.NewWindow(&screen.NewWindowOptions{
-		Title: pw.Title,
-		Width: windowWidth,
+		Title:  pw.Title,
+		Width:  windowWidth,
 		Height: windowHeight,
 	})
 	if err != nil {
@@ -146,26 +146,24 @@ func (pw *Visualizer) drawDefaultUI() {
 	}
 }
 
-
 func (pw *Visualizer) drawTShape(center image.Point) {
 	tShapeColor := color.RGBA{255, 255, 0, 255}
 	blockSize := 100
 
 	stem := image.Rect(
-		center.X - blockSize / 2,
-		center.Y - blockSize,
-		center.X + blockSize / 2,
+		center.X-blockSize/2,
+		center.Y-blockSize,
+		center.X+blockSize/2,
 		center.Y,
 	)
-	
+
 	head := image.Rect(
-		center.X - blockSize * 3 / 2,
+		center.X-blockSize*3/2,
 		center.Y,
-		center.X + blockSize * 3 / 2,
-		center.Y + blockSize,
+		center.X+blockSize*3/2,
+		center.Y+blockSize,
 	)
-	
+
 	pw.w.Fill(stem, tShapeColor, draw.Src)
 	pw.w.Fill(head, tShapeColor, draw.Src)
 }
-
