@@ -137,14 +137,14 @@ func (pw *Visualizer) handleEvent(e any, t screen.Texture) {
 func (pw *Visualizer) drawDefaultUI() {
 	pw.w.Fill(pw.sz.Bounds(), color.White, draw.Src)
 
-	pw.drawTShape(pw.pos)
+	pw.drawFigure(pw.pos)
 
 	for _, br := range imageutil.Border(pw.sz.Bounds(), 10) {
 		pw.w.Fill(br, color.White, draw.Src)
 	}
 }
 
-func (pw *Visualizer) drawTShape(center image.Point) {
+func (pw *Visualizer) drawFigure(center image.Point) {
 	yellow := color.RGBA{255, 255, 0, 255}
 	blockSide := 100
 

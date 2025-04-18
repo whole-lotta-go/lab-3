@@ -19,9 +19,9 @@ func TestLoopPostAndUpdate(t *testing.T) {
 	l.Receiver = &tr
 
 	l.Start(mockScreen{})
-	l.Post(&WhiteFill{})
-	l.Post(&GreenFill{})
-	l.Post(UpdateOp)
+	l.Post(&Fill{color.RGBA{R: 0, G: 255, B: 0, A: 255}})
+	l.Post(&Fill{color.White})
+	l.Post(&UpdateOp{})
 	l.StopAndWait()
 
 	if tr.lastTexture == nil {
@@ -31,11 +31,8 @@ func TestLoopPostAndUpdate(t *testing.T) {
 	if !ok {
 		t.Fatal("Unexpected texture", tr.lastTexture)
 	}
-	if mt.Colors[0] != color.White {
-		t.Error("First color is not white:", mt.Colors)
-	}
-	if len(mt.Colors) != 2 {
-		t.Error("Unexpected number of colors:", mt.Colors)
+	if mt.color != color.White {
+		t.Error("First color is not white:", mt.color)
 	}
 }
 
@@ -60,16 +57,16 @@ func TestLoopQueueSeq(t *testing.T) {
 	l.Receiver = &tr
 
 	l.Start(mockScreen{})
-	l.Post(OperationFunc(func(screen.Texture) {
+	l.Post(OperationFunc(func(*State) {
 		gotSeq = append(gotSeq, "Operation 1")
-		l.Post(OperationFunc(func(screen.Texture) {
+		l.Post(OperationFunc(func(*State) {
 			gotSeq = append(gotSeq, "Operation 3")
 		}))
 	}))
-	l.Post(OperationFunc(func(screen.Texture) {
+	l.Post(OperationFunc(func(*State) {
 		gotSeq = append(gotSeq, "Operation 2")
 	}))
-	l.Post(UpdateOp)
+	l.Post(&UpdateOp{})
 	l.StopAndWait()
 
 	wantSeq := []string{"Operation 1", "Operation 2", "Operation 3"}
@@ -101,7 +98,7 @@ func (m mockScreen) NewWindow(opts *screen.NewWindowOptions) (screen.Window, err
 }
 
 type mockTexture struct {
-	Colors []color.Color
+	color color.Color
 }
 
 func (m *mockTexture) Release() {}
@@ -115,5 +112,5 @@ func (m *mockTexture) Bounds() image.Rectangle {
 func (m *mockTexture) Upload(dp image.Point, src screen.Buffer, sr image.Rectangle) {}
 
 func (m *mockTexture) Fill(dr image.Rectangle, src color.Color, op draw.Op) {
-	m.Colors = append(m.Colors, src)
+	m.color = src
 }

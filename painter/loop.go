@@ -19,8 +19,8 @@ type Receiver interface {
 type Loop struct {
 	Receiver Receiver
 
-	next screen.Texture // текстура, яка зараз формується
-	prev screen.Texture // текстура, яка була відправлення останнього разу у Receiver
+	state *State
+	curr  screen.Texture
 
 	oq opQueue
 
@@ -30,20 +30,19 @@ type Loop struct {
 
 // Start запускає цикл подій. Цей метод потрібно запустити до того, як викликати на ньому будь-які інші методи.
 func (l *Loop) Start(s screen.Screen) {
-	l.next, _ = s.NewTexture(size)
-	l.prev, _ = s.NewTexture(size)
+	l.curr, _ = s.NewTexture(size)
 
 	l.stop = make(chan struct{})
 	l.oq.ne = sync.NewCond(&l.oq.mu)
+	l.state = &State{}
 	go func() {
 		defer close(l.stop)
 
 		for !(l.stopReq && l.oq.empty()) {
 			op := l.oq.pull()
-
-			if update := op.Do(l.next); update {
-				l.Receiver.Update(l.next)
-				l.next, l.prev = l.prev, l.next
+			if update := op.Do(l.state); update {
+				l.state.Draw(l.curr)
+				l.Receiver.Update(l.curr)
 			}
 		}
 	}()
@@ -56,7 +55,7 @@ func (l *Loop) Post(op Operation) {
 
 // StopAndWait сигналізує про необхідність завершити цикл та блокується до моменту його повної зупинки.
 func (l *Loop) StopAndWait() {
-	l.Post(OperationFunc(func(screen.Texture) {
+	l.Post(OperationFunc(func(s *State) {
 		l.stopReq = true
 	}))
 	<-l.stop
