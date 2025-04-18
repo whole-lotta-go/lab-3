@@ -16,8 +16,9 @@ import (
 	"golang.org/x/mobile/event/size"
 )
 
-const windowWidth = 800
-const windowHeight = 800
+const (
+	windowHeight, windowWidth = 800, 800
+)
 
 type Visualizer struct {
 	Title         string
