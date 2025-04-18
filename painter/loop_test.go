@@ -22,6 +22,7 @@ func TestLoopPostAndUpdate(t *testing.T) {
 	l.Post(OperationFunc(WhiteFill))
 	l.Post(OperationFunc(GreenFill))
 	l.Post(UpdateOp)
+	l.StopAndWait()
 
 	if tr.lastTexture == nil {
 		t.Fatal("Texture was not updated")
@@ -47,6 +48,7 @@ func TestLoopQueueWait(t *testing.T) {
 
 	l.Start(mockScreen{})
 	runtime.Gosched()
+	l.StopAndWait()
 }
 
 func TestLoopQueueSeq(t *testing.T) {
@@ -67,6 +69,8 @@ func TestLoopQueueSeq(t *testing.T) {
 	l.Post(OperationFunc(func(screen.Texture) {
 		gotSeq = append(gotSeq, "Operation 2")
 	}))
+	l.Post(UpdateOp)
+	l.StopAndWait()
 
 	wantSeq := []string{"Operation 1", "Operation 2", "Operation 3"}
 	if !reflect.DeepEqual(gotSeq, wantSeq) {
