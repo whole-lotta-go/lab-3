@@ -26,7 +26,7 @@ type Visualizer struct {
 	done chan struct{}
 
 	sz  size.Event
-	pos image.Rectangle
+	pos image.Point
 }
 
 func (pw *Visualizer) Main() {
@@ -42,8 +42,13 @@ func (pw *Visualizer) Update(t screen.Texture) {
 }
 
 func (pw *Visualizer) run(s screen.Screen) {
+	const windowWidth = 800
+	const windowHeight = 800
+	
 	w, err := s.NewWindow(&screen.NewWindowOptions{
 		Title: pw.Title,
+		Width: windowWidth,
+		Height: windowHeight,
 	})
 	if err != nil {
 		log.Fatal("Failed to initialize the app window:", err)
@@ -115,9 +120,7 @@ func (pw *Visualizer) handleEvent(e any, t screen.Texture) {
 
 	case mouse.Event:
 		if e.Button == mouse.ButtonLeft {
-			x := int(e.X) - pw.pos.Dx()/2
-			y := int(e.Y) - pw.pos.Dy()/2
-			pw.pos = image.Rect(x, y, x+pw.pos.Dx(), y+pw.pos.Dy())
+			pw.pos = image.Point{int(e.X), int(e.Y)}
 			pw.w.Send(paint.Event{})
 		}
 
@@ -144,25 +147,25 @@ func (pw *Visualizer) drawDefaultUI() {
 }
 
 
-func (pw *Visualizer) drawTShape(pos image.Rectangle) {
-	headHeight := 60
-	stemWidth := 60
-
-	head := image.Rect(
-		pos.Min.X,
-		pos.Max.Y-headHeight,
-		pos.Max.X,
-		pos.Max.Y,
-	)
+func (pw *Visualizer) drawTShape(center image.Point) {
+	tShapeColor := color.RGBA{255, 255, 0, 255}
+	blockSize := 100
 
 	stem := image.Rect(
-		pos.Min.X+(pos.Dx()-stemWidth)/2,
-		pos.Min.Y,
-		pos.Min.X+(pos.Dx()-stemWidth)/2+stemWidth,
-		pos.Max.Y-headHeight,
+		center.X - blockSize / 2,
+		center.Y - blockSize,
+		center.X + blockSize / 2,
+		center.Y,
 	)
-
-	pw.w.Fill(head, color.RGBA{255, 255, 0, 255}, draw.Src) // Жовтий
-	pw.w.Fill(stem, color.RGBA{255, 255, 0, 255}, draw.Src)
+	
+	head := image.Rect(
+		center.X - blockSize * 3 / 2,
+		center.Y,
+		center.X + blockSize * 3 / 2,
+		center.Y + blockSize,
+	)
+	
+	pw.w.Fill(stem, tShapeColor, draw.Src)
+	pw.w.Fill(head, tShapeColor, draw.Src)
 }
 
