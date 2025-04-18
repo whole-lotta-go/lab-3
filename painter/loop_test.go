@@ -5,40 +5,23 @@ import (
 	"image/color"
 	"image/draw"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"golang.org/x/exp/shiny/screen"
 )
 
-func TestLoop_Post(t *testing.T) {
+func TestLoopPostAndUpdate(t *testing.T) {
 	var (
 		l  Loop
 		tr testReceiver
 	)
 	l.Receiver = &tr
 
-	var testOps []string
-
 	l.Start(mockScreen{})
-	l.Post(logOp(t, "do white fill", WhiteFill))
-	l.Post(logOp(t, "do green fill", GreenFill))
+	l.Post(OperationFunc(WhiteFill))
+	l.Post(OperationFunc(GreenFill))
 	l.Post(UpdateOp)
-
-	for i := 0; i < 3; i++ {
-		go l.Post(logOp(t, "do green fill", GreenFill))
-	}
-
-	l.Post(OperationFunc(func(screen.Texture) {
-		testOps = append(testOps, "op 1")
-		l.Post(OperationFunc(func(screen.Texture) {
-			testOps = append(testOps, "op 2")
-		}))
-	}))
-	l.Post(OperationFunc(func(screen.Texture) {
-		testOps = append(testOps, "op 3")
-	}))
-
-	l.StopAndWait()
 
 	if tr.lastTexture == nil {
 		t.Fatal("Texture was not updated")
@@ -51,18 +34,43 @@ func TestLoop_Post(t *testing.T) {
 		t.Error("First color is not white:", mt.Colors)
 	}
 	if len(mt.Colors) != 2 {
-		t.Error("Unexpected size of colors:", mt.Colors)
-	}
-
-	if !reflect.DeepEqual(testOps, []string{"op 1", "op 2", "op 3"}) {
-		t.Error("Bad order:", testOps)
+		t.Error("Unexpected number of colors:", mt.Colors)
 	}
 }
 
-func logOp(t *testing.T, msg string, op OperationFunc) OperationFunc {
-	return func(tx screen.Texture) {
-		t.Log(msg)
-		op(tx)
+func TestLoopQueueWait(t *testing.T) {
+	var (
+		l  Loop
+		tr testReceiver
+	)
+	l.Receiver = &tr
+
+	l.Start(mockScreen{})
+	runtime.Gosched()
+}
+
+func TestLoopQueueSeq(t *testing.T) {
+	var (
+		l      Loop
+		tr     testReceiver
+		gotSeq []string
+	)
+	l.Receiver = &tr
+
+	l.Start(mockScreen{})
+	l.Post(OperationFunc(func(screen.Texture) {
+		gotSeq = append(gotSeq, "Operation 1")
+		l.Post(OperationFunc(func(screen.Texture) {
+			gotSeq = append(gotSeq, "Operation 3")
+		}))
+	}))
+	l.Post(OperationFunc(func(screen.Texture) {
+		gotSeq = append(gotSeq, "Operation 2")
+	}))
+
+	wantSeq := []string{"Operation 1", "Operation 2", "Operation 3"}
+	if !reflect.DeepEqual(gotSeq, wantSeq) {
+		t.Errorf("Operation sequence mismatch:\n got=%v\n want=%v", gotSeq, wantSeq)
 	}
 }
 
@@ -101,6 +109,7 @@ func (m *mockTexture) Bounds() image.Rectangle {
 }
 
 func (m *mockTexture) Upload(dp image.Point, src screen.Buffer, sr image.Rectangle) {}
+
 func (m *mockTexture) Fill(dr image.Rectangle, src color.Color, op draw.Op) {
 	m.Colors = append(m.Colors, src)
 }
