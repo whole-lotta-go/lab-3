@@ -72,7 +72,7 @@ func (oq *opQueue) push(op Operation) {
 	oq.mu.Lock()
 	defer oq.mu.Unlock()
 
-	isEmpty := oq.empty()
+	isEmpty := oq.lockedEmpty()
 	oq.ops = append(oq.ops, op)
 
 	if isEmpty {
@@ -84,7 +84,7 @@ func (oq *opQueue) pull() Operation {
 	oq.mu.Lock()
 	defer oq.mu.Unlock()
 
-	for oq.empty() {
+	for oq.lockedEmpty() {
 		oq.ne.Wait()
 	}
 	op := oq.ops[0]
@@ -93,6 +93,13 @@ func (oq *opQueue) pull() Operation {
 	return op
 }
 
-func (oq *opQueue) empty() bool {
+func (oq *opQueue) lockedEmpty() bool {
 	return len(oq.ops) == 0
+}
+
+func (oq *opQueue) empty() bool {
+	oq.mu.Lock()
+	defer oq.mu.Unlock()
+
+	return oq.lockedEmpty()
 }
