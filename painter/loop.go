@@ -2,9 +2,12 @@ package painter
 
 import (
 	"image"
+	"sync"
 
 	"golang.org/x/exp/shiny/screen"
 )
+
+var size = image.Pt(800, 800)
 
 // Receiver отримує текстуру, яка була підготовлена в результаті виконання команд у циклі подій.
 type Receiver interface {
@@ -18,43 +21,78 @@ type Loop struct {
 	next screen.Texture // текстура, яка зараз формується
 	prev screen.Texture // текстура, яка була відправлення останнього разу у Receiver
 
-	mq messageQueue
+	oq opQueue
 
 	stop    chan struct{}
 	stopReq bool
 }
-
-var size = image.Pt(800, 800)
 
 // Start запускає цикл подій. Цей метод потрібно запустити до того, як викликати на ньому будь-які інші методи.
 func (l *Loop) Start(s screen.Screen) {
 	l.next, _ = s.NewTexture(size)
 	l.prev, _ = s.NewTexture(size)
 
-	// TODO: стартувати цикл подій.
+	l.stop = make(chan struct{})
+	l.oq.ne = sync.NewCond(&l.oq.mu)
+	go func() {
+		defer close(l.stop)
+
+		for !(l.stopReq && l.oq.empty()) {
+			op := l.oq.pull()
+
+			if update := op.Do(l.next); update {
+				l.Receiver.Update(l.next)
+				l.next, l.prev = l.prev, l.next
+			}
+		}
+	}()
 }
 
 // Post додає нову операцію у внутрішню чергу.
 func (l *Loop) Post(op Operation) {
-	if update := op.Do(l.next); update {
-		l.Receiver.Update(l.next)
-		l.next, l.prev = l.prev, l.next
-	}
+	l.oq.push(op)
 }
 
 // StopAndWait сигналізує про необхідність завершити цикл та блокується до моменту його повної зупинки.
 func (l *Loop) StopAndWait() {
+	l.Post(OperationFunc(func(screen.Texture) {
+		l.stopReq = true
+	}))
+	<-l.stop
 }
 
-// TODO: Реалізувати чергу подій.
-type messageQueue struct{}
+type opQueue struct {
+	ops []Operation
 
-func (mq *messageQueue) push(op Operation) {}
-
-func (mq *messageQueue) pull() Operation {
-	return nil
+	mu sync.Mutex
+	ne *sync.Cond
 }
 
-func (mq *messageQueue) empty() bool {
-	return false
+func (oq *opQueue) push(op Operation) {
+	oq.mu.Lock()
+	defer oq.mu.Unlock()
+
+	isEmpty := oq.empty()
+	oq.ops = append(oq.ops, op)
+
+	if isEmpty {
+		oq.ne.Signal()
+	}
+}
+
+func (oq *opQueue) pull() Operation {
+	oq.mu.Lock()
+	defer oq.mu.Unlock()
+
+	for oq.empty() {
+		oq.ne.Wait()
+	}
+	op := oq.ops[0]
+	oq.ops[0] = nil
+	oq.ops = oq.ops[1:]
+	return op
+}
+
+func (oq *opQueue) empty() bool {
+	return len(oq.ops) == 0
 }
